@@ -7,7 +7,7 @@ client = MongoClient('localhost', 27017)
 db = client.tinder_turing
 
 
-def register_user(tid):
+def register_user(tid, name):
     return
 
 
