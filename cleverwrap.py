@@ -68,13 +68,14 @@ class CleverWrap:
         :type params: dict
         Returns: dict
         """
-        # Get a response
-        try:
-            r = requests.get(self.url, params=params)
-        # catch errors, print then exit.
-        except requests.exceptions.RequestException as e:
-            print(e)
-        return r.json(strict=False)  # Ignore possible control codes in returned data
+        for attempt in range(3):
+            # Get a response
+            try:
+                r = requests.get(self.url, params=params, timeout=5)
+                return r.json(strict=False)  # Ignore possible control codes in returned data
+            # catch errors, print then exit.
+            except requests.exceptions.RequestException as e:
+                print(e)
 
 
     def _process_reply(self, reply):
