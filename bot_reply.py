@@ -1,4 +1,6 @@
 import eliza
+import random
+import time
 from cleverwrap import CleverWrap
 from threading import RLock
 
@@ -16,9 +18,26 @@ class BotReply():
             self.cleverbots[tid] = cleverbot
             return cleverbot
 
-    def get_reply(self, tid, message):
+    @staticmethod
+    def _reply_time(message, delay=0, cpm=300, noise=3):
+        typing_time = 60 / cpm * len(message)
+        noise_time = random.random() * noise
+        return delay + typing_time + noise_time
+
+    def _compute_reply(self, tid, message):
         cleverbot = self._init_cleverbot(tid)
         try:
             return cleverbot.say(message)
         except:
             return eliza.analyze(message)
+
+    def get_reply(self, tid, message):
+        received = time.time()
+        reply = self._compute_reply(tid, message)
+        reply_time = self._reply_time(reply)
+        wait_time = received + reply_time - time.time()
+        print(reply)
+        print(f'Expected reply time: {reply_time}, wait time: {wait_time}')
+        if wait_time > 0:
+            time.sleep(wait_time)
+        return reply
