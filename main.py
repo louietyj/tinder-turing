@@ -5,7 +5,7 @@ from bot_reply import *
 from dal import *
 
 bot_reply = BotReply(CLEVERBOT_TOKEN)
-turing_bot = TuringBot(BOT_TOKEN)
+turing_bot = TuringBot(BOT_TOKEN, bot_reply)
 
 def pair(prob_bot=0.3):
     tids = [user['tid'] for user in db.users.find()]    # TODO: ...where 'active': False

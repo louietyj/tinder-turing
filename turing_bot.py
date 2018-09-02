@@ -4,7 +4,8 @@ import telegram.error
 from dal import *
 
 class TuringBot():
-    def __init__(self, token):
+    def __init__(self, token, bot_reply):
+        self.bot_reply = bot_reply
         self.updater = telegram.ext.Updater(token=token)
         self.dispatcher = self.updater.dispatcher
         self.bot = self.dispatcher.bot
@@ -59,7 +60,11 @@ class TuringBot():
         partner = list({pair['tid1'], pair['tid2']} - {chat_id})[0]
         # TODO: Message normalization and validation here
         # TODO: Log message to DB
-        bot.sendMessage(chat_id=partner, text=message)
+        if partner:
+            bot.sendMessage(chat_id=partner, text=message)
+        else:
+            reply = self.bot_reply.get_reply(chat_id, message)
+            bot.sendMessage(chat_id=chat_id, text=reply)
 
     def error_handler(self, bot, update, error):
         if isinstance(error, TimedOut):
