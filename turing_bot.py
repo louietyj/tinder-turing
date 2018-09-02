@@ -13,6 +13,7 @@ class TuringBot():
         self.dispatcher.add_handler(telegram.ext.CommandHandler('start', self.start_handler))
         self.dispatcher.add_handler(telegram.ext.CommandHandler('name', self.name_handler))
         self.dispatcher.add_handler(telegram.ext.CommandHandler('id', self.id_handler))
+        self.dispatcher.add_handler(telegram.ext.MessageHandler(telegram.ext.Filters.text, self.message_handler))
         self.dispatcher.add_error_handler(self.error_handler)
         self.updater.start_polling()
 
@@ -47,6 +48,18 @@ class TuringBot():
     def id_handler(self, bot, update):
         chat_id = update.message.chat.id
         bot.sendMessage(chat_id=chat_id, text=self._format_bot(str(chat_id)))
+
+    def message_handler(self, bot, update):
+        chat_id = update.message.chat.id
+        message = update.message.text
+        pair = db.pairs.find_one({'$or': [{'tid1': chat_id}, {'tid2': chat_id}], 'active': True})
+        if not pair:
+            msg = 'You are not connected to anyone yet. Keep swiping, one day you\'ll meet someone!'
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+        partner = list({pair['tid1'], pair['tid2']} - {chat_id})[0]
+        # TODO: Message normalization and validation here
+        # TODO: Log message to DB
+        bot.sendMessage(chat_id=partner, text=message)
 
     def error_handler(self, bot, update, error):
         if isinstance(error, TimedOut):
