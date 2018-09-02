@@ -1,8 +1,10 @@
 import random
 from config import *
 from turing_bot import *
+from bot_reply import *
 from dal import *
 
+bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN)
 
 def pair(prob_bot=0.3):
