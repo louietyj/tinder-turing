@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 """
 
 import requests
+from threading import RLock
 
 class CleverWrap:
     """ A simple wrapper class for the www.cleverbot.com api. """
@@ -41,8 +42,13 @@ class CleverWrap:
         self.time_elapsed = 0
         self.time_taken = 0
         self.output = ""
+        self.lock = RLock()
 
     def say(self, text):
+        with self.lock:
+            return self._say(text)
+
+    def _say(self, text):
         """ 
         Say something to www.cleverbot.com
         :type text: string
