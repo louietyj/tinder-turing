@@ -39,7 +39,12 @@ class TuringBot():
             bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
             return
         try:
-            db.users.replace_one({'tid': chat_id}, {'tid': chat_id, 'name': name}, True)
+            #db.users.replace_one({'tid': chat_id}, {'tid': chat_id, 'name': name}, True)
+            User(name=name, tid=str(chat_id)).save()
+        except NotUniqueError as e:
+            # tid must be unique in the User collection
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(f'You\'re already registered as {name}!\n\n{e}'))
+            return
         except Exception as e:
             bot.sendMessage(chat_id=chat_id, text=self._format_bot(f'Error: {e}'))
             return
@@ -53,10 +58,19 @@ class TuringBot():
     def message_handler(self, bot, update):
         chat_id = update.message.chat.id
         message = update.message.text
-        pair = db.pairs.find_one({'$or': [{'tid1': chat_id}, {'tid2': chat_id}], 'active': True})
+        #pair = db.pairs.find_one({'$or': [{'tid1': chat_id}, {'tid2': chat_id}], 'active': True})
+        pair = Pair.objects(Q(is_active=True) & Q(tid1=chat_id) | Q(tid2=chat_id))
+
+        if len(pair) > 1:
+            # this shouldn't happen...probably
+            msg = 'Whoa there! Something\'s wrong - you\'re in multiple active pairs!'
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+
         if not pair:
             msg = 'You are not connected to anyone yet. Keep swiping, one day you\'ll meet someone!'
             bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+
+        pair = pair[0]
         partner = list({pair['tid1'], pair['tid2']} - {chat_id})[0]
         # TODO: Message normalization and validation here
         # TODO: Log message to DB

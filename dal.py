@@ -2,95 +2,34 @@
 This thingy is Mr. DAL, everyone's favorite Data Access Layer!
 """
 import datetime
-import pymongo
-
-client = pymongo.MongoClient('localhost', 27017)
-db = client.tinder_turing
-
-# prevent duplicate documents from being inserted
-# all users must have unique Telegram IDs
-db.users.create_index([('tid', 1)], unique=True)
-
-# this enforces all pairs to be unique
-# disabled, because bot IDs will be repeated
-# db.pairs.create_index([('pair', 1)], unique=True)
+from mongoengine import *
 
 
-def register_user(tid, name):
-    """
-    Registers a user into the database.
-    :param tid: Telegram ID
-    :param name: Name of user
-    :return: True if registration succeeded; False otherwise
-    """
-    document = {'name': name, 'tid': tid}
-    try:
-        result = db.users.insert_one(document)
-    except (pymongo.errors.DuplicateKeyError, pymongo.errors.WriteError):
-        return False
-    return True
+class User(Document):
+    name = StringField(required=True)
+    tid = StringField(required=True, unique=True)
 
 
-def get_user_name(tid):
-    """
-    Get a user's registered name by their Telegram ID
-    :param tid:
-    :return: name if found; None otherwise
-    """
-    result = db.users.find_one({'tid': tid}, {'name': True})
-    if result is not None:
-        return result['name']
-    return None
+class Pair(Document):
+    is_active = BooleanField(default=True)
+    tid1 = StringField()
+    tid2 = StringField()
+    confidence1 = IntField(min_value=0, max_value=100)
+    confidence2 = IntField(min_value=0, max_value=100)
+    round_num = IntField(required=True)
+    start_time = DateTimeField(default=datetime.datetime.now())
+    end_time = DateTimeField()
 
 
-def register_pair(tid1, tid2=None):
-    """
-    Registers a pair into the database. Every pair must be unique.
-
-    The pair list is always sorted in ascending order.
-
-    :param tid1: first Telegram ID
-    :param tid2: second Telegram ID
-    :return: True if registration succeeded; False otherwise
-    """
-    document = {'pair': sorted([tid1, tid2])}
-    try:
-        result = db.pairs.insert_one(document)
-    except pymongo.errors.WriteError:
-        return False
-    return True
+class Message(Document):
+    pair = ReferenceField(Pair, required=True)
+    sender = StringField(required=True)
+    message = StringField(required=True)
+    timestamp = DateTimeField(default=datetime.datetime.now())
 
 
-def get_pair(tid):
-    """
-    Retrieves the pair that a given Telegram ID is assigned to.
-    :param tid: target Telegram ID
-    :return: list of pairs if any; None if tid does not exist in any pair
-    """
-    pattern = {'pair': tid}
+def get_user_by_tid(tid):
+    return User.objects(tid=str(tid))[0]
 
-    cursor = db.pairs.find(pattern, {'pair': True})
-    if cursor is None:
-        return None
-
-    pairs = []
-    for result in cursor:
-        pairs.append(result['pair'])
-    return pairs
-
-
-def save_message(pair, sender, message, timestamp=datetime.datetime.utcnow()):
-    """
-    Saves a message to the database.
-    :param pair:
-    :param sender:
-    :param message:
-    :param timestamp:
-    :return: True if save succeeded; False otherwise
-    """
-    document = {'pair': pair, 'sender': sender, 'message': message, 'timestamp': timestamp}
-    try:
-        result = db.messages.insert_one(document)
-    except pymongo.errors.WriteError:
-        return False
-    return True
+# establish connection to mongodb instance
+connect('tinder_turing', host='localhost', port=27017)
