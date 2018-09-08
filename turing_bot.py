@@ -59,7 +59,7 @@ class TuringBot():
         chat_id = update.message.chat.id
         message = update.message.text
         #pair = db.pairs.find_one({'$or': [{'tid1': chat_id}, {'tid2': chat_id}], 'active': True})
-        pair = Pair.objects(Q(is_active=True) & Q(tid1=chat_id) | Q(tid2=chat_id))
+        pair = get_pair_by_tid(chat_id)
 
         if len(pair) > 1:
             # this shouldn't happen...probably
