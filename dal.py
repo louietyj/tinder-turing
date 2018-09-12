@@ -31,7 +31,7 @@ class Message(PrintableDocument):
     pair = ReferenceField(Pair, required=True)
     sender = StringField(required=True)
     message = StringField(required=True)
-    timestamp = DateTimeField(default=datetime.datetime.now())
+    timestamp = DateTimeField(required=True)
 
 
 def get_user_by_tid(tid):
@@ -39,6 +39,14 @@ def get_user_by_tid(tid):
         return User.objects(tid=str(tid))[0]
     except IndexError as e:
         return None
+
+
+def get_name_by_tid(tid):
+    user = get_user_by_tid(tid)
+    if user is None:
+        return 'John Doe'
+    return user['name']
+
 
 def get_pair_by_tid(tid, is_active=True, round_num=None):
     if round_num is None:

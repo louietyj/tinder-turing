@@ -6,6 +6,7 @@ from message_normalizer import *
 from utils import *
 from utils_tgbot import *
 
+
 class TuringBot():
     def __init__(self, token, bot_reply):
         self.bot_reply = bot_reply
@@ -102,7 +103,8 @@ class TuringBot():
         pair.update(set__turn=(1 if pair.turn == 2 else 2))
         pair.reload()
 
-        # TODO: Log message to DB
+        # log message to DB
+        Message(pair=pair, sender=get_name_by_tid(chat_id), message=message, timestamp=datetime.datetime.now()).save()
 
         # Forward or trigger bot reply
         if partner:
