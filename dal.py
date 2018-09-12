@@ -40,8 +40,10 @@ def get_user_by_tid(tid):
     except IndexError as e:
         return None
 
-def get_pair_by_tid(tid, is_active=True):
-    return Pair.objects(Q(is_active=is_active) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
+def get_pair_by_tid(tid, is_active=True, round_num=None):
+    if round_num is None:
+        return Pair.objects(Q(is_active=is_active) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
+    return Pair.objects(Q(round_num=int(round_num)) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
 
 # establish connection to mongodb instance
 db = connect('tinder_turing', host='localhost', port=27017)

@@ -15,6 +15,7 @@ class TuringBot():
         self.dispatcher.add_handler(telegram.ext.CommandHandler('start', self.start_handler))
         self.dispatcher.add_handler(telegram.ext.CommandHandler('name', self.name_handler))
         self.dispatcher.add_handler(telegram.ext.CommandHandler('id', self.id_handler))
+        self.dispatcher.add_handler(telegram.ext.CommandHandler('confidence', self.confidence_handler))
         self.dispatcher.add_handler(telegram.ext.MessageHandler(telegram.ext.Filters.text, self.message_handler))
         self.dispatcher.add_error_handler(self.error_handler)
         self.updater.start_polling()
@@ -114,6 +115,55 @@ class TuringBot():
                 pair.turn = 1
                 pair.save()
 
+    def confidence_handler(self, bot, update):
+        confidence_self_help = '/confidence <round> <confidence-level>\ne.g. /confidence 2 99\n\nPlease enter the round number and your confidence that you were talking to a human with a number from 0 to 100!\n\n 0 - definitely a robot\n50 - cannot tell at all\n100 - definitely a human'
+        chat_id = update.message.chat.id
+        message = update.message.text
+
+        try:
+            _, iteration, confidence = message.split(maxsplit=2)
+            iteration, confidence = iteration.strip(), confidence.strip()
+            assert confidence.isdigit()
+            assert iteration.isdigit()
+
+            iteration, confidence = int(iteration), int(confidence)
+            assert iteration >= 0
+            assert 0 <= confidence <= 100
+        except Exception as e:
+            print(e)
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(confidence_self_help))
+            return
+        
+        # confidence is sane and good to use
+        # grab target iteration pair
+        current_pair = get_pair_by_tid(chat_id, round_num=iteration)
+
+        if len(current_pair) > 1:
+            msg = 'Whoa there! Something\'s wrong - you were/are in multiple pairs in round {}!'.format(iteration)
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+            return
+
+        if not current_pair:
+            msg = 'Couldn\'t find a pair with you in it in round {}!'.format(iteration)
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+            return
+
+        # update pair confidence
+        current_pair = current_pair[0]
+
+        try:
+            if current_pair.tid1 == str(chat_id):
+                current_pair.confidence1 = confidence
+            elif current_pair.tid2 == str(chat_id):
+                current_pair.confidence2 = confidence
+            current_pair.save()
+        except ValidationError as e:
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(confidence_self_help))
+            return
+
+        bot.sendMessage(chat_id=chat_id, text=self._format_bot('Thanks for voting for round {}!'.format(iteration)))
+        return
+        
     def error_handler(self, bot, update, error):
         if isinstance(error, TimedOut):
             return
