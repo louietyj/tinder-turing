@@ -2,6 +2,7 @@ import telegram
 import telegram.ext
 import telegram.error
 from dal import *
+from message_normalizer import *
 
 class TuringBot():
     def __init__(self, token, bot_reply):
@@ -59,11 +60,10 @@ class TuringBot():
     def message_handler(self, bot, update):
         chat_id = update.message.chat.id
         message = update.message.text
-        #pair = db.pairs.find_one({'$or': [{'tid1': chat_id}, {'tid2': chat_id}], 'active': True})
+        message_id = update.message.message_id
         pair = get_pair_by_tid(chat_id)
 
         if len(pair) > 1:
-            # this shouldn't happen...probably
             msg = 'Whoa there! Something\'s wrong - you\'re in multiple active pairs!'
             bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
 
@@ -73,8 +73,23 @@ class TuringBot():
 
         pair = pair[0]
         partner = list({pair['tid1'], pair['tid2']} - {str(chat_id)})[0]
-        # TODO: Message normalization and validation here
+
+        # Message normalization
+        nm = MessageNormalizer(message)
+        if nm.fatal_errors:
+            msg = 'Message *not* sent due to the following violations:\n' + \
+                    '\n'.join(f'- {error}' for error in nm.fatal_errors)
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
+            return
+        elif nm.warn_errors:
+            msg = 'Message auto-corrected and sent with the following fixes:\n' + \
+                    '\n'.join(f'- {error}' for error in nm.warn_errors) + \
+                    f'\n\nCorrected message: {nm.message}'
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
+        message = nm.message
+
         # TODO: Log message to DB
+
         if partner:
             bot.sendMessage(chat_id=partner, text=message)
         else:
