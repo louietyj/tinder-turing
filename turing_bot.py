@@ -94,6 +94,8 @@ class TuringBot():
             bot.sendMessage(chat_id=partner, text=message)
         else:
             reply = self.bot_reply.get_reply(chat_id, message)
+            # Send the normalized message whether or not there are fatal violations
+            reply = MessageNormalizer(reply).message
             bot.sendMessage(chat_id=chat_id, text=reply)
 
     def error_handler(self, bot, update, error):
