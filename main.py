@@ -7,32 +7,43 @@ from dal import *
 bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN, bot_reply)
 
-def pair(round_num, prob_bot=0.5):
+def pair_all(round_num, prob_bot=0.5):
     # Get unpaired tids
     tids = set(User.objects.distinct('tid'))
     tids -= set(Pair.objects(is_active=True).distinct('tid1'))
     tids -= set(Pair.objects(is_active=True).distinct('tid2'))
     tids = list(tids)
-    tids_copy = tids.copy()
     random.shuffle(tids)
+
+    tids1 = []  # Their turn
+    tids2 = []  # Not their turn
 
     # Pair with bots
     bot_count = round(len(tids) * prob_bot)
     for _ in range(bot_count):
-        Pair(round_num=round_num, tid1=tids.pop(), tid2=None).save()
+        tid = tids.pop()
+        tids1.append(tid)
+        Pair(round_num=round_num, tid1=tid, tid2=None).save()
 
     # Pair between players
     while len(tids) >= 2:
         tid1, tid2 = tids.pop(), tids.pop()
-        tid1, tid2 = sorted((tid1, tid2))
+        tids1.append(tid1)
+        tids2.append(tid2)
         Pair(round_num=round_num, tid1=tid1, tid2=tid2).save()
 
     # Pair leftover guy with bot
     if tids:
-        Pair(round_num=round_num, tid1=tids.pop(), tid2=None).save()
+        tid = tids.pop()
+        tids1.append(tid)
+        Pair(round_num=round_num, tid1=tid, tid2=None).save()
 
-    msg = f'Round {round_num}: You are now connected with your partner!'
-    for tid in tids_copy:
+    msg = f'Round {round_num}: You are now connected with your partner! It is your turn to speak.'
+    for tid in tids1:
+        turing_bot.bot.sendMessage(chat_id=tid, text=turing_bot._format_bot(msg))
+
+    msg = f'Round {round_num}: You are now connected with your partner! It is your partner\'s turn to speak.'
+    for tid in tids2:
         turing_bot.bot.sendMessage(chat_id=tid, text=turing_bot._format_bot(msg))
 
 def unpair_all():

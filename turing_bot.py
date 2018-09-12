@@ -73,6 +73,13 @@ class TuringBot():
 
         pair = pair[0]
         partner = list({pair['tid1'], pair['tid2']} - {str(chat_id)})[0]
+        is_turn = pair[f'tid{pair.turn}'] == str(chat_id)
+
+        # Enforce turn-taking
+        if not is_turn:
+            msg = 'Message *not* sent. It\'s not your turn!'
+            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
+            return
 
         # Message normalization
         nm = MessageNormalizer(message)
@@ -92,11 +99,20 @@ class TuringBot():
 
         if partner:
             bot.sendMessage(chat_id=partner, text=message)
+            pair.turn = 1 if pair.turn == 2 else 2
+            pair.save()
         else:
-            reply = self.bot_reply.get_reply(chat_id, message)
-            # Send the normalized message whether or not there are fatal violations
-            reply = MessageNormalizer(reply).message
-            bot.sendMessage(chat_id=chat_id, text=reply)
+            pair.turn = 2
+            pair.save()
+            try:
+                # TODO: Make this asynchronous
+                reply = self.bot_reply.get_reply(chat_id, message)
+                # Send the normalized message whether or not there are fatal violations
+                reply = MessageNormalizer(reply).message
+                bot.sendMessage(chat_id=chat_id, text=reply)
+            finally:
+                pair.turn = 1
+                pair.save()
 
     def error_handler(self, bot, update, error):
         if isinstance(error, TimedOut):

@@ -24,6 +24,7 @@ class Pair(PrintableDocument):
     round_num = IntField(required=True)
     start_time = DateTimeField(default=datetime.datetime.now())
     end_time = DateTimeField()
+    turn = IntField(min_value=1, max_value=2, default=1)
 
 
 class Message(PrintableDocument):
