@@ -4,13 +4,18 @@ This thingy is Mr. DAL, everyone's favorite Data Access Layer!
 import datetime
 from mongoengine import *
 
+class PrintableDocument(Document):
+    meta = {'abstract': True}
 
-class User(Document):
+    def __repr__(self):
+        return f'<{type(self).__name__} {self.to_mongo().to_dict()}>'
+
+class User(PrintableDocument):
     name = StringField(required=True)
     tid = StringField(required=True, unique=True)
 
 
-class Pair(Document):
+class Pair(PrintableDocument):
     is_active = BooleanField(default=True)
     tid1 = StringField()
     tid2 = StringField()
@@ -21,7 +26,7 @@ class Pair(Document):
     end_time = DateTimeField()
 
 
-class Message(Document):
+class Message(PrintableDocument):
     pair = ReferenceField(Pair, required=True)
     sender = StringField(required=True)
     message = StringField(required=True)
