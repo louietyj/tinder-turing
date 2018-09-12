@@ -40,7 +40,7 @@ def get_user_by_tid(tid):
         return None
 
 def get_pair_by_tid(tid, is_active=True):
-    return Pair.objects(Q(is_active=is_active) & Q(tid1=str(tid)) | Q(tid2=str(tid)))
+    return Pair.objects(Q(is_active=is_active) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
 
 # establish connection to mongodb instance
 connect('tinder_turing', host='localhost', port=27017)

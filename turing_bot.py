@@ -72,7 +72,7 @@ class TuringBot():
             bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
 
         pair = pair[0]
-        partner = list({pair['tid1'], pair['tid2']} - {chat_id})[0]
+        partner = list({pair['tid1'], pair['tid2']} - {str(chat_id)})[0]
         # TODO: Message normalization and validation here
         # TODO: Log message to DB
         if partner:
