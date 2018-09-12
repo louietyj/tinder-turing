@@ -30,6 +30,8 @@ class TuringBot():
 
     def name_handler(self, bot, update):
         chat_id = update.message.chat.id
+
+        # Validate name
         try:
             name = update.message.text.split(maxsplit=1)[1]
             name = name.strip()
@@ -38,13 +40,12 @@ class TuringBot():
             msg = 'Please enter your name with only letters and numbers, e.g. no emojis.'
             bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
             return
+
+        # Update name
+        user = User.objects(tid=str(chat_id)).first() or User(tid=str(chat_id))
+        user.name = name
         try:
-            #db.users.replace_one({'tid': chat_id}, {'tid': chat_id, 'name': name}, True)
-            User(name=name, tid=str(chat_id)).save()
-        except NotUniqueError as e:
-            # tid must be unique in the User collection
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(f'You\'re already registered as {name}!\n\n{e}'))
-            return
+            user.save()
         except Exception as e:
             bot.sendMessage(chat_id=chat_id, text=self._format_bot(f'Error: {e}'))
             return
