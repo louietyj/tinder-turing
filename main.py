@@ -7,29 +7,45 @@ from dal import *
 bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN, bot_reply)
 
-def pair(prob_bot=0.3):
-    tids = [user['tid'] for user in User.objects.only('tid')]    # TODO: ...where 'active': False
+def pair(round_num, prob_bot=0.5):
+    # Get unpaired tids
+    tids = set(User.objects.distinct('tid'))
+    tids -= set(Pair.objects(is_active=True).distinct('tid1'))
+    tids -= set(Pair.objects(is_active=True).distinct('tid2'))
+    tids = list(tids)
     tids_copy = tids.copy()
     random.shuffle(tids)
 
     # Pair with bots
     bot_count = round(len(tids) * prob_bot)
     for _ in range(bot_count):
-        #db.pairs.insert_one({'tid1': tids.pop(), 'tid2': None, 'active': True})
-        Pair(tid1=tids.pop(), tid2=None).save()
+        Pair(round_num=round_num, tid1=tids.pop(), tid2=None).save()
 
     # Pair between players
     while len(tids) >= 2:
         tid1, tid2 = tids.pop(), tids.pop()
         tid1, tid2 = sorted((tid1, tid2))
-        #db.pairs.insert_one({'tid1': tid1, 'tid2': tid2, 'active': True})
-        Pair(tid1=tid1, tid2=tid2).save()
+        Pair(round_num=round_num, tid1=tid1, tid2=tid2).save()
 
     # Pair leftover guy with bot
     if tids:
-        #db.pairs.insert_one({'tid1': tids.pop(), 'tid2': None, 'active': True})
-        Pair(tid1=tids.pop(), tid2=None).save()
+        Pair(round_num=round_num, tid1=tids.pop(), tid2=None).save()
 
-    msg = 'You are now connected with your partner!'
+    msg = f'Round {round_num}: You are now connected with your partner!'
     for tid in tids_copy:
+        turing_bot.bot.sendMessage(chat_id=tid, text=turing_bot._format_bot(msg))
+
+def unpair_all():
+    for pair in Pair.objects(is_active=True):
+        unpair(pair)
+
+def unpair(pair):
+    if not pair.is_active:
+        return
+    pair.is_active = False
+    pair.save()
+    for tid in (pair.tid1, pair.tid2):
+        if tid is None:
+            continue
+        msg = f'Round {pair.round_num}: The round has ended and you are now disconnected. Remember to register your confidence!'
         turing_bot.bot.sendMessage(chat_id=tid, text=turing_bot._format_bot(msg))
