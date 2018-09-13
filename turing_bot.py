@@ -99,8 +99,8 @@ class TuringBot():
         message = nm.message
 
         # Flip turn
-        pair.turn = 1 if pair.turn == 2 else 2
-        pair.save()
+        pair.update(set__turn=(1 if pair.turn == 2 else 2))
+        pair.reload()
 
         # TODO: Log message to DB
 
@@ -155,10 +155,10 @@ class TuringBot():
 
         try:
             if current_pair.tid1 == str(chat_id):
-                current_pair.confidence1 = confidence
+                current_pair.update(set__confidence1=confidence)
             elif current_pair.tid2 == str(chat_id):
-                current_pair.confidence2 = confidence
-            current_pair.save()
+                current_pair.update(set__confidence2=confidence)
+            current_pair.reload()
         except ValidationError as e:
             run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(confidence_self_help))
             return
