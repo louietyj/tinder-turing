@@ -98,24 +98,24 @@ class TuringBot():
             run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
         message = nm.message
 
+        # Flip turn
+        pair.turn = 1 if pair.turn == 2 else 2
+        pair.save()
+
         # TODO: Log message to DB
 
+        # Forward or trigger bot reply
         if partner:
             run_async(self.bot.sendMessage, chat_id=partner, text=message)
-            pair.turn = 1 if pair.turn == 2 else 2
-            pair.save()
         else:
-            pair.turn = 2
-            pair.save()
-            try:
-                # TODO: Make this asynchronous
-                reply = self.bot_reply.get_reply(chat_id, message)
-                # Send the normalized message whether or not there are fatal violations
-                reply = MessageNormalizer(reply).message
-                run_async(self.bot.sendMessage, chat_id=chat_id, text=reply)
-            finally:
-                pair.turn = 1
-                pair.save()
+            run_async(self._await_bot_reply, pair, chat_id, message)
+
+    def _await_bot_reply(self, pair, chat_id, message):
+        reply = self.bot_reply.get_reply(chat_id, message)
+        # Send the normalized message whether or not there are fatal violations
+        reply = MessageNormalizer(reply).message
+        run_async(self.bot.sendMessage, chat_id=chat_id, text=reply)
+        pair.update(set__turn=1)    # Supposedly atomic, so no need for lock
 
     def confidence_handler(self, bot, update):
         confidence_self_help = '/confidence <round> <confidence-level>\ne.g. /confidence 2 99\n\nPlease enter the round number and your confidence that you were talking to a human with a number from 0 to 100!\n\n 0 - definitely a robot\n50 - cannot tell at all\n100 - definitely a human'
