@@ -42,16 +42,23 @@ class MessageNormalizer:
         self.warn_errors.append('Ending period added.')
 
     def enforce_capitalization(self):
-        sentences = nltk.tokenize.sent_tokenize(self.message)
+        remaining_message = self.message
+        new_message = []
         fixed = False
-        for i, sentence in enumerate(sentences):
-            if not sentence[0].isalpha():
-                continue
-            if sentence[0].isupper():
-                continue
-            fixed = True
-            sentence = sentence[0].upper() + sentence[1:]
-            sentences[i] = sentence
+        for sentence in nltk.tokenize.sent_tokenize(self.message):
+            # Re-add boundary text
+            boundary = remaining_message.index(sentence)
+            if boundary != 0:
+                new_message.append(remaining_message[:boundary])
+                remaining_message = remaining_message[boundary:]
+            remaining_message = remaining_message[len(sentence):]
+
+            # Edit sentence
+            if sentence[0].isalpha() and not sentence[0].isupper():
+                fixed = True
+                sentence = sentence[0].upper() + sentence[1:]
+            new_message.append(sentence)
+        new_message.append(remaining_message)
         if fixed:
             self.warn_errors.append('Enforced capitalization on first word of sentences.')
-        self.message = ' '.join(sentences)
+        self.message = ''.join(new_message)
