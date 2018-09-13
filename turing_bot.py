@@ -3,13 +3,15 @@ import telegram.ext
 import telegram.error
 from dal import *
 from message_normalizer import *
+from utils import *
+from utils_tgbot import *
 
 class TuringBot():
     def __init__(self, token, bot_reply):
         self.bot_reply = bot_reply
         self.updater = telegram.ext.Updater(token=token)
         self.dispatcher = self.updater.dispatcher
-        self.bot = self.dispatcher.bot
+        self.bot = BotWrapper(self.dispatcher.bot)
 
         # Add handlers
         self.dispatcher.add_handler(telegram.ext.CommandHandler('start', self.start_handler))
@@ -28,7 +30,7 @@ class TuringBot():
     def start_handler(self, bot, update):
         chat_id = update.message.chat.id
         msg = 'Hi! Please register by typing /name {name}.'
-        bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+        run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg))
 
     def name_handler(self, bot, update):
         chat_id = update.message.chat.id
@@ -40,7 +42,7 @@ class TuringBot():
             assert name.encode('ascii').decode() == name
         except Exception:
             msg = 'Please enter your name with only letters and numbers, e.g. no emojis.'
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg))
             return
 
         # Update name
@@ -49,14 +51,14 @@ class TuringBot():
         try:
             user.save()
         except Exception as e:
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(f'Error: {e}'))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(f'Error: {e}'))
             return
         msg = f'You have successfully registered as: {name}.'
-        bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+        run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg))
 
     def id_handler(self, bot, update):
         chat_id = update.message.chat.id
-        bot.sendMessage(chat_id=chat_id, text=self._format_bot(str(chat_id)))
+        run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(str(chat_id)))
 
     def message_handler(self, bot, update):
         chat_id = update.message.chat.id
@@ -66,11 +68,11 @@ class TuringBot():
 
         if len(pair) > 1:
             msg = 'Whoa there! Something\'s wrong - you\'re in multiple active pairs!'
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg))
 
         if not pair:
             msg = 'You are not connected to anyone yet. Keep swiping, one day you\'ll meet someone!'
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg))
 
         pair = pair[0]
         partner = list({pair['tid1'], pair['tid2']} - {str(chat_id)})[0]
@@ -79,7 +81,7 @@ class TuringBot():
         # Enforce turn-taking
         if not is_turn:
             msg = 'Message *not* sent. It\'s not your turn!'
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
             return
 
         # Message normalization
@@ -87,19 +89,19 @@ class TuringBot():
         if nm.fatal_errors:
             msg = 'Message *not* sent due to the following violations:\n' + \
                     '\n'.join(f'- {error}' for error in nm.fatal_errors)
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
             return
         elif nm.warn_errors:
             msg = 'Message auto-corrected and sent with the following fixes:\n' + \
                     '\n'.join(f'- {error}' for error in nm.warn_errors) + \
                     f'\n\nCorrected message: {nm.message}'
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg), reply_to_message_id=message_id)
         message = nm.message
 
         # TODO: Log message to DB
 
         if partner:
-            bot.sendMessage(chat_id=partner, text=message)
+            run_async(self.bot.sendMessage, chat_id=partner, text=message)
             pair.turn = 1 if pair.turn == 2 else 2
             pair.save()
         else:
@@ -110,7 +112,7 @@ class TuringBot():
                 reply = self.bot_reply.get_reply(chat_id, message)
                 # Send the normalized message whether or not there are fatal violations
                 reply = MessageNormalizer(reply).message
-                bot.sendMessage(chat_id=chat_id, text=reply)
+                run_async(self.bot.sendMessage, chat_id=chat_id, text=reply)
             finally:
                 pair.turn = 1
                 pair.save()
@@ -131,7 +133,7 @@ class TuringBot():
             assert 0 <= confidence <= 100
         except Exception as e:
             print(e)
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(confidence_self_help))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(confidence_self_help))
             return
         
         # confidence is sane and good to use
@@ -140,12 +142,12 @@ class TuringBot():
 
         if len(current_pair) > 1:
             msg = 'Whoa there! Something\'s wrong - you were/are in multiple pairs in round {}!'.format(iteration)
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg))
             return
 
         if not current_pair:
             msg = 'Couldn\'t find a pair with you in it in round {}!'.format(iteration)
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(msg))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(msg))
             return
 
         # update pair confidence
@@ -158,10 +160,10 @@ class TuringBot():
                 current_pair.confidence2 = confidence
             current_pair.save()
         except ValidationError as e:
-            bot.sendMessage(chat_id=chat_id, text=self._format_bot(confidence_self_help))
+            run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(confidence_self_help))
             return
 
-        bot.sendMessage(chat_id=chat_id, text=self._format_bot('Thanks for voting for round {}!'.format(iteration)))
+        run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot('Thanks for voting for round {}!'.format(iteration)))
         return
         
     def error_handler(self, bot, update, error):
