@@ -2,6 +2,8 @@ from dal import *
 import textwrap
 import tabulate
 
+BOT_NAME = 'Bot'
+
 
 def get_users_summary():
     users = []
@@ -19,6 +21,24 @@ def _summarize_user(user):
         else:
             rounds.append(f'{pair.round_num}')
     return [user.name, user.tid, ', '.join(rounds)]
+
+
+def get_pair_summary(is_active=True):
+    header = ['round', '', '', 'active?', 'start time']
+    summary = []
+    for pair in Pair.objects(Q(is_active=is_active)):
+        summary.append(_summarize_pair(pair))
+    print(tabulate.tabulate(summary, headers=header))
+    return
+
+
+def _summarize_pair(pair):
+    name1 = get_name_by_tid(pair.tid1)
+    if pair.tid2 is None:
+        name2 = BOT_NAME
+    else:
+        name2 = get_name_by_tid(pair.tid2)
+    return [pair.round_num, name1, name2, pair.is_active, _get_pretty_timestamp(pair.start_time)]
 
 
 def get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110 + '\n', stdout=False):
@@ -47,10 +67,14 @@ def get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110 
 
 
 def _message_to_string(message, sender, msg_width=50, left_pad=None):
-    result = message.timestamp.strftime('%I:%M:%S %p') + '\n'
+    result = _get_pretty_timestamp(message.timestamp) + '\n'
     result += f'{sender}\n'
     result += '\n'.join(textwrap.wrap(message.message, msg_width))
 
     if left_pad is not None:
         result = textwrap.indent(result, ' ' * left_pad)
     return result
+
+
+def _get_pretty_timestamp(dt):
+    return dt.strftime('%I:%M:%S %p')
