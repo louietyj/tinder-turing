@@ -1,5 +1,24 @@
 from dal import *
 import textwrap
+import tabulate
+
+
+def get_users_summary():
+    users = []
+    for user in User.objects:
+        users.append(_summarize_user(user))
+    print(tabulate.tabulate(users, headers=['Name', 'TID', 'Rounds']))
+    return
+
+
+def _summarize_user(user):
+    rounds = []
+    for pair in get_pairs_containing_tid(user.tid):
+        if pair.is_active:
+            rounds.append(f'{pair.round_num} (IP)')
+        else:
+            rounds.append(f'{pair.round_num}')
+    return [user.name, user.tid, ', '.join(rounds)]
 
 
 def get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110 + '\n', stdout=False):

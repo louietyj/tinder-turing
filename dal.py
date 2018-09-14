@@ -48,6 +48,12 @@ def get_name_by_tid(tid):
     return user['name']
 
 
+def get_pairs_containing_tid(tid, is_active=None):
+    if is_active is None:
+        return Pair.objects(Q(tid1=str(tid)) | Q(tid2=str(tid)))
+    return Pair.objects(Q(is_active=is_active) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
+
+
 def get_pair_by_tid(tid, is_active=True, round_num=None):
     if round_num is None:
         return Pair.objects(Q(is_active=is_active) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
