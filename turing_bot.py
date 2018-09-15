@@ -110,9 +110,9 @@ class TuringBot():
         if partner:
             run_async(self.bot.sendMessage, chat_id=partner, text=message)
         else:
-            run_async(self._await_bot_reply, pair, chat_id, message)
+            run_async(self.await_bot_reply, pair, chat_id, message)
 
-    def _await_bot_reply(self, pair, chat_id, message):
+    def await_bot_reply(self, pair, chat_id, message):
         reply = self.bot_reply.get_reply(chat_id, message)
         # Send the normalized message whether or not there are fatal violations
         reply = MessageNormalizer(reply).message

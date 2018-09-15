@@ -16,36 +16,38 @@ def pair_all(round_num, prob_bot=0.5):
     tids = list(tids)
     random.shuffle(tids)
 
-    tids1 = []  # Their turn
-    tids2 = []  # Not their turn
-
     # Pair with bots
     bot_count = round(len(tids) * prob_bot)
     for _ in range(bot_count):
-        tid = tids.pop()
-        tids1.append(tid)
-        Pair(round_num=round_num, tid1=tid, tid2=None, start_time=datetime.datetime.now()).save()
+        init_pair(round_num, tids.pop(), None)
 
     # Pair between players
     while len(tids) >= 2:
-        tid1, tid2 = tids.pop(), tids.pop()
-        tids1.append(tid1)
-        tids2.append(tid2)
-        Pair(round_num=round_num, tid1=tid1, tid2=tid2, start_time=datetime.datetime.now()).save()
+        init_pair(round_num, tids.pop(), tids.pop())
 
     # Pair leftover guy with bot
     if tids:
-        tid = tids.pop()
-        tids1.append(tid)
-        Pair(round_num=round_num, tid1=tid, tid2=None, start_time=datetime.datetime.now()).save()
+        init_pair(round_num, tids.pop(), None)
 
-    msg = f'Round {round_num}: You are now connected with your partner! It is your turn to speak.'
-    for tid in tids1:
-        turing_bot.bot.sendMessage(chat_id=tid, text=turing_bot._format_bot(msg))
-
-    msg = f'Round {round_num}: You are now connected with your partner! It is your partner\'s turn to speak.'
-    for tid in tids2:
-        turing_bot.bot.sendMessage(chat_id=tid, text=turing_bot._format_bot(msg))
+def init_pair(round_num, tid1, tid2):
+    msg1 = (
+        f'Round {round_num}: You are now connected with your partner! It is your turn to speak, '
+         'and you must say "Hello!", so we have already done that for you.'
+    )
+    msg2 = (
+        f'Round {round_num}: You are now connected with your partner! It is your partner\'s turn '
+         'to speak, and he must say "Hello!"'
+    )
+    turn = random.randint(1, 2)
+    start_tid, other_tid = (tid1, tid2) if turn == 2 else (tid2, tid1)
+    pair = Pair(round_num=round_num, tid1=tid1, tid2=tid2, turn=turn).save()
+    if start_tid:
+        run_async(turing_bot.bot.sendMessage, chat_id=start_tid, text=turing_bot._format_bot(msg1))
+    if other_tid:
+        run_async(turing_bot.bot.sendMessage, chat_id=other_tid, text=turing_bot._format_bot(msg2))
+        run_async_after(1, turing_bot.bot.sendMessage, chat_id=other_tid, text='Hello!')
+    else:
+        run_async_after(1, turing_bot.await_bot_reply, pair, start_tid, 'Hello!')
 
 def unpair_all():
     for pair in Pair.objects(is_active=True):
