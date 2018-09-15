@@ -1,7 +1,6 @@
 from dal import *
 import textwrap
 import tabulate
-from operator import itemgetter
 
 BOT_NAME = 'Bot'
 
