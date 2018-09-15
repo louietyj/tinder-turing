@@ -25,7 +25,7 @@ def _summarize_user(user):
 
 
 def get_pair_summary(is_active=True):
-    header = ['round', 'p1', 'tid1', 'conf1', 'p2', 'tid2', 'conf2', 'active?', 'start time']
+    header = ['round', 'p1', 'tid1', 'conf1', 'p2', 'tid2', 'conf2', 'active?', 'start time', 'end time']
     summary = []
     for pair in Pair.objects(is_active=is_active).order_by('round'):
         summary.append(_summarize_pair(pair))
@@ -39,11 +39,12 @@ def _summarize_pair(pair):
         name2 = BOT_NAME
     else:
         name2 = get_name_by_tid(pair.tid2)
-    return [pair.round_num, name1, pair.tid1, pair.confidence1, name2, pair.tid2, pair.confidence2, pair.is_active, _get_pretty_timestamp(pair.start_time)]
+    return [pair.round_num, name1, pair.tid1, pair.confidence1, name2, pair.tid2, pair.confidence2, pair.is_active,
+            _get_pretty_timestamp(pair.start_time), _get_pretty_timestamp(pair.end_time)]
 
 
 def get_ranking():
-    header = ['round', 'p1', 'tid1', 'conf1', 'p2', 'tid2', 'conf2', 'active?', 'start time']
+    header = ['round', 'p1', 'tid1', 'conf1', 'p2', 'tid2', 'conf2', 'active?', 'start time', 'end time']
     # rank all human-bot pairs
     bot_rank = []
     for pair in Pair.objects(tid2=None).order_by('confidence1', 'confidence2'):
@@ -105,4 +106,6 @@ def _message_to_string(message, sender, msg_width=50, left_pad=None):
 
 
 def _get_pretty_timestamp(dt):
+    if dt is None:
+        return None
     return dt.strftime('%I:%M:%S %p')

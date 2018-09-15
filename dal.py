@@ -22,7 +22,7 @@ class Pair(PrintableDocument):
     confidence1 = IntField(min_value=0, max_value=100)
     confidence2 = IntField(min_value=0, max_value=100)
     round_num = IntField(required=True)
-    start_time = DateTimeField(default=datetime.datetime.now())
+    start_time = DateTimeField(required=True)
     end_time = DateTimeField()
     turn = IntField(min_value=1, max_value=2, default=1)
 

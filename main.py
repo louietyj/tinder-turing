@@ -23,20 +23,20 @@ def pair_all(round_num, prob_bot=0.5):
     for _ in range(bot_count):
         tid = tids.pop()
         tids1.append(tid)
-        Pair(round_num=round_num, tid1=tid, tid2=None).save()
+        Pair(round_num=round_num, tid1=tid, tid2=None, start_time=datetime.datetime.now()).save()
 
     # Pair between players
     while len(tids) >= 2:
         tid1, tid2 = tids.pop(), tids.pop()
         tids1.append(tid1)
         tids2.append(tid2)
-        Pair(round_num=round_num, tid1=tid1, tid2=tid2).save()
+        Pair(round_num=round_num, tid1=tid1, tid2=tid2, start_time=datetime.datetime.now()).save()
 
     # Pair leftover guy with bot
     if tids:
         tid = tids.pop()
         tids1.append(tid)
-        Pair(round_num=round_num, tid1=tid, tid2=None).save()
+        Pair(round_num=round_num, tid1=tid, tid2=None, start_time=datetime.datetime.now()).save()
 
     msg = f'Round {round_num}: You are now connected with your partner! It is your turn to speak.'
     for tid in tids1:
@@ -54,6 +54,7 @@ def unpair(pair):
     if not pair.is_active:
         return
     pair.is_active = False
+    pair.end_time = datetime.datetime.now()
     pair.save()
     for tid in (pair.tid1, pair.tid2):
         if tid is None:
