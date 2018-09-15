@@ -104,7 +104,7 @@ class TuringBot():
         pair.reload()
 
         # log message to DB
-        Message(pair=pair, sender=get_name_by_tid(chat_id), message=message, timestamp=datetime.datetime.now()).save()
+        Message(pair=pair, sender=get_name_by_tid(chat_id), message=message).save()
 
         # Forward or trigger bot reply
         if partner:

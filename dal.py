@@ -22,7 +22,7 @@ class Pair(PrintableDocument):
     confidence1 = IntField(min_value=0, max_value=100)
     confidence2 = IntField(min_value=0, max_value=100)
     round_num = IntField(required=True)
-    start_time = DateTimeField(required=True)
+    start_time = DateTimeField(required=True, default=datetime.datetime.now)
     end_time = DateTimeField()
     turn = IntField(min_value=1, max_value=2, default=1)
 
@@ -31,7 +31,7 @@ class Message(PrintableDocument):
     pair = ReferenceField(Pair, required=True)
     sender = StringField(required=True)
     message = StringField(required=True)
-    timestamp = DateTimeField(required=True)
+    timestamp = DateTimeField(required=True, default=datetime.datetime.now)
 
 
 def get_user_by_tid(tid):
