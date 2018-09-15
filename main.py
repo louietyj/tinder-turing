@@ -63,4 +63,4 @@ def unpair(pair):
         if tid is None:
             continue
         msg = f'Round {pair.round_num}: The round has ended and you are now disconnected. Remember to register your confidence!'
-        turing_bot.bot.sendMessage(chat_id=tid, text=turing_bot._format_bot(msg))
+        run_async(turing_bot.bot.sendMessage, chat_id=tid, text=turing_bot._format_bot(msg))
