@@ -19,7 +19,7 @@ class BotReply():
             return cleverbot
 
     @staticmethod
-    def _reply_time(message, delay=0, cpm=300, noise=3):
+    def _reply_time(message, delay=-1.5, cpm=500, noise=3):
         typing_time = 60 / cpm * len(message)
         noise_time = random.random() * noise
         return delay + typing_time + noise_time
