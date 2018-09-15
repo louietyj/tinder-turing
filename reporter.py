@@ -27,7 +27,7 @@ def _summarize_user(user):
 def get_pair_summary(is_active=True):
     header = ['round', 'p1', 'tid1', 'conf1', 'p2', 'tid2', 'conf2', 'active?', 'start time']
     summary = []
-    for pair in Pair.objects(Q(is_active=is_active)):
+    for pair in Pair.objects(is_active=is_active).order_by('round'):
         summary.append(_summarize_pair(pair))
     print(tabulate.tabulate(summary, headers=header))
     return
