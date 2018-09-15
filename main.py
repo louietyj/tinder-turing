@@ -9,6 +9,15 @@ bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN, bot_reply)
 
 def pair_all(round_num, prob_bot=0.5):
+    # Make sure there is no inactive pair with this round number
+    if Pair.objects(round_num=round_num, is_active=False).first():
+        while True:
+            cmd = input('[Warn] There is an inactive pair with this round number. Continue? (y/n) ')
+            if cmd.lower() == 'y':
+                break
+            if cmd.lower() == 'n':
+                return
+
     # Get unpaired tids
     tids = set(User.objects.distinct('tid'))
     tids -= set(Pair.objects(is_active=True).distinct('tid1'))
