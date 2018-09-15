@@ -1,3 +1,4 @@
+import emoji
 import inspect
 import nltk
 
@@ -27,6 +28,13 @@ class MessageNormalizer:
         if any(char.isalnum() for char in self.message):
             return
         self.fatal_errors.append('Message contains no words.')
+
+    def enforce_no_emoji(self):
+        # Use dict hack instead of set to maintain order
+        emoji_chars = {char: None for char in self.message if char in emoji.UNICODE_EMOJI}
+        if not emoji_chars:
+            return
+        self.fatal_errors.append(f'Detected emoji: {"".join(emoji_chars)}.')
 
     def enforce_single_whitespace(self):
         if '  ' not in self.message:
