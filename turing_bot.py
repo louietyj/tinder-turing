@@ -126,11 +126,7 @@ class TuringBot():
 
         try:
             _, iteration, confidence = message.split(maxsplit=2)
-            iteration, confidence = iteration.strip(), confidence.strip()
-            assert confidence.isdigit()
-            assert iteration.isdigit()
-
-            iteration, confidence = int(iteration), int(confidence)
+            iteration, confidence = int(iteration.strip()), int(confidence.strip())
             assert iteration >= 0
             assert 0 <= confidence <= 100
         except Exception as e:
