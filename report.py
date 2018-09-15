@@ -6,7 +6,7 @@ BOT_NAME = 'Bot'
 PAIR_HEADER = ['round', 'p1', 'tid1', 'conf1', 'p2', 'tid2', 'conf2', 'active?', 'start time', 'end time', 'id']
 
 
-def get_users_summary():
+def users():
     users = []
     for user in User.objects:
         users.append(_summarize_user(user))
@@ -24,9 +24,14 @@ def _summarize_user(user):
     return [user.name, user.tid, ', '.join(rounds)]
 
 
-def get_pair_summary(is_active=True):
+def pairs(is_active=None):
     summary = []
-    for pair in Pair.objects(is_active=is_active).order_by('round'):
+    if is_active is None:
+        pairs = Pair.objects().order_by('round')
+    else:
+        pairs = Pair.objects(is_active=is_active).order_by('round')
+
+    for pair in pairs:
         summary.append(_summarize_pair(pair))
     print(tabulate.tabulate(summary, headers=PAIR_HEADER))
     return
@@ -42,7 +47,7 @@ def _summarize_pair(pair):
             _get_pretty_timestamp(pair.start_time), _get_pretty_timestamp(pair.end_time), pair.id]
 
 
-def get_ranking():
+def rank():
     header = ['round', 'p1', 'tid1', 'conf1', 'p2', 'tid2', 'conf2', 'active?', 'start time', 'end time', 'id']
     # rank all human-bot pairs
     bot_rank = []
@@ -69,7 +74,7 @@ def _summarize_pair_with_conf(pair):
     return [pair.round_num, name1, name2, pair.is_active, _get_pretty_timestamp(pair.start_time)]
 
 
-def get_conversation(uuid, outfile):
+def convo(uuid, outfile):
     pair = Pair.objects(id=uuid)[0]
     _get_conversation(pair.tid1, pair.tid2, pair.round_num, outfile)
 
