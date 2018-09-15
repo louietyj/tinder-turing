@@ -48,16 +48,15 @@ def get_name_by_tid(tid):
     return user['name']
 
 
-def get_pairs_containing_tid(tid, is_active=None):
+def get_pair_by_tid(tid, is_active=True):
     if is_active is None:
         return Pair.objects(Q(tid1=str(tid)) | Q(tid2=str(tid)))
     return Pair.objects(Q(is_active=is_active) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
 
 
-def get_pair_by_tid(tid, is_active=True, round_num=None):
-    if round_num is None:
-        return Pair.objects(Q(is_active=is_active) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
+def get_pair_by_tid_in_round(tid, round_num):
     return Pair.objects(Q(round_num=int(round_num)) & (Q(tid1=str(tid)) | Q(tid2=str(tid))))
+
 
 # establish connection to mongodb instance
 db = connect('tinder_turing', host='localhost', port=27017)

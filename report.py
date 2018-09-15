@@ -16,7 +16,7 @@ def users():
 
 def _summarize_user(user):
     rounds = []
-    for pair in get_pairs_containing_tid(user.tid):
+    for pair in get_pair_by_tid(user.tid, is_active=None):
         if pair.is_active:
             rounds.append(f'{pair.round_num} (IP)')
         else:
@@ -80,7 +80,7 @@ def convo(uuid, outfile):
 
 
 def _get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110 + '\n', stdout=True):
-    pair = get_pair_by_tid(tid1, round_num=round_num)
+    pair = get_pair_by_tid_in_round(tid1, round_num)
 
     pair = pair[0]
     header = f'{tid1} with {tid2} for round {round_num}\n\n\n'

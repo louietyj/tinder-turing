@@ -140,7 +140,7 @@ class TuringBot():
         
         # confidence is sane and good to use
         # grab target iteration pair
-        current_pair = get_pair_by_tid(chat_id, round_num=iteration)
+        current_pair = get_pair_by_tid_in_round(chat_id, iteration)
 
         if len(current_pair) > 1:
             msg = 'Whoa there! Something\'s wrong - you were/are in multiple pairs in round {}!'.format(iteration)
