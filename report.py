@@ -90,7 +90,7 @@ def _get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110
     for msg in Message.objects(pair=pair).order_by('timestamp'):
         if get_name_by_tid(tid1) == msg.sender:
             thread.append(_message_to_string(msg, 'SENDER 1'))
-        if get_name_by_tid(tid2) == msg.sender:
+        if get_name_by_tid(tid2) == msg.sender or msg.sender == BOT_NAME:
             thread.append(_message_to_string(msg, 'SENDER 2', left_pad=55))
 
     thread.append(footer)

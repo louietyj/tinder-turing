@@ -5,6 +5,8 @@ from bot_reply import *
 from dal import *
 import report
 
+INITIAL_HELLO = 'Hello!'
+
 bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN, bot_reply)
 
@@ -51,12 +53,23 @@ def init_pair(round_num, tid1, tid2):
     start_tid, other_tid = (tid1, tid2) if turn == 2 else (tid2, tid1)
     pair = Pair(round_num=round_num, tid1=tid1, tid2=tid2, turn=turn).save()
     if start_tid:
+        # send the "it's ur turn" message to the starter (if it's a human)
         run_async(turing_bot.bot.sendMessage, chat_id=start_tid, text=turing_bot._format_bot(msg1))
+
     if other_tid:
+        # receiving end is human
         run_async(turing_bot.bot.sendMessage, chat_id=other_tid, text=turing_bot._format_bot(msg2))
-        run_async_after(1, turing_bot.bot.sendMessage, chat_id=other_tid, text='Hello!')
+        run_async_after(1, turing_bot.bot.sendMessage, chat_id=other_tid, text=INITIAL_HELLO)
+        if start_tid is None:
+            # initial hello from bot
+            Message(pair=pair, sender=report.BOT_NAME, message=INITIAL_HELLO).save()
+        else:
+            # initial hello from human
+            Message(pair=pair, sender=get_name_by_tid(start_tid), message=INITIAL_HELLO).save()
     else:
-        run_async_after(1, turing_bot.await_bot_reply, pair, start_tid, 'Hello!')
+        # receiving end is a bot
+        run_async_after(1, turing_bot.await_bot_reply, pair, start_tid, INITIAL_HELLO)
+        Message(pair=pair, sender=get_name_by_tid(start_tid), message=INITIAL_HELLO).save()
 
 def unpair_all():
     for pair in Pair.objects(is_active=True):

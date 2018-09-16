@@ -5,6 +5,7 @@ from dal import *
 from message_normalizer import *
 from utils import *
 from utils_tgbot import *
+from report import BOT_NAME
 
 
 class TuringBot():
@@ -116,6 +117,7 @@ class TuringBot():
         reply = self.bot_reply.get_reply(chat_id, message)
         # Send the normalized message whether or not there are fatal violations
         reply = MessageNormalizer(reply).message
+        Message(pair=pair, sender=BOT_NAME, message=reply).save()  # log bot's response
         run_async(self.bot.sendMessage, chat_id=chat_id, text=reply)
         pair.update(set__turn=1)    # Supposedly atomic, so no need for lock
 
