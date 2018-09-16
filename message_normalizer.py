@@ -36,6 +36,12 @@ class MessageNormalizer:
             return
         self.fatal_errors.append(f'Detected emoji: {"".join(emoji_chars)}.')
 
+    def enforce_no_bot(self):
+        if '[BOT]' not in self.message:
+            return
+        self.fatal_errors.append('Nice try, no [BOT] allowed.')
+        self.message = self.message.replace('[BOT]', '')
+
     def enforce_single_whitespace(self):
         if '  ' not in self.message:
             return
