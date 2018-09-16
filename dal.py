@@ -44,7 +44,7 @@ def get_user_by_tid(tid):
 def get_name_by_tid(tid):
     user = get_user_by_tid(tid)
     if user is None:
-        return 'John Doe'
+        return f'John Doe ({tid})'
     return user['name']
 
 
