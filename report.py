@@ -118,3 +118,77 @@ def _get_pretty_timestamp(dt):
     if dt is None:
         return None
     return dt.strftime('%I:%M:%S %p')
+
+
+def confusion(threshold=50, round_num=None):
+    pairs = Pair.objects() if round_num is None else Pair.objects(round_num=round_num)
+
+    # do the number number crunchy crunchy
+    confusion_matrix = _generate_confusion_matrix(pairs, threshold)
+
+    # construct table
+    table = [_construct_confusion_table_row(confusion_matrix, 'bot'),
+             _construct_confusion_table_row(confusion_matrix, 'human')]
+    header = ['', 'Mean Confidence (%)', f'>= {threshold}', f'< {threshold}', '% pass']
+    print(tabulate.tabulate(table, headers=header))
+
+    return
+
+
+def _construct_confusion_table_row(confusion_matrix, key):
+    title = f'Talking to {key}'
+    mean = '-'
+    pct_pass = '-'
+
+    if confusion_matrix[key]['total'] > 0:
+        mean = '%.3f' % (confusion_matrix[key]['sum_of_conf'] / confusion_matrix[key]['total'])
+        pct_pass = '%.3f' % (confusion_matrix[key]['above'] / confusion_matrix[key]['total'] * 100)
+
+    above = confusion_matrix[key]['above']
+    below = confusion_matrix[key]['below']
+    return [title, mean, above, below, pct_pass]
+
+
+def _generate_confusion_matrix(pairs, threshold):
+    talking_to = {
+        'bot': {
+            'above': 0, 'below': 0, 'total': 0, 'sum_of_conf': 0,
+        },
+        'human': {
+            'above': 0, 'below': 0, 'total': 0, 'sum_of_conf': 0,
+        },
+    }
+
+    # if confidence is not available, we do not count it into the total
+    for pair in pairs:
+        if _is_bot_pair(pair):
+            # human-bot pair
+            if pair.confidence1 is not None:
+                talking_to['bot']['total'] += 1
+                talking_to['bot']['sum_of_conf'] += pair.confidence1
+                if pair.confidence1 >= threshold:
+                    talking_to['bot']['above'] += 1
+                else:
+                    talking_to['bot']['below'] += 1
+        else:
+            # human-human pair
+            if pair.confidence1 is not None:
+                talking_to['human']['total'] += 1
+                talking_to['human']['sum_of_conf'] += pair.confidence1
+                if pair.confidence1 >= threshold:
+                    talking_to['human']['above'] += 1
+                else:
+                    talking_to['human']['below'] += 1
+
+            if pair.confidence2 is not None:
+                talking_to['human']['total'] += 1
+                talking_to['human']['sum_of_conf'] += pair.confidence2
+                if pair.confidence2 >= threshold:
+                    talking_to['human']['above'] += 1
+                else:
+                    talking_to['human']['below'] += 1
+    return talking_to
+
+
+def _is_bot_pair(pair):
+    return pair.tid2 is None

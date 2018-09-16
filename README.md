@@ -20,3 +20,4 @@ While on the intepreter, you can run the following methods:
 | `report.pairs(False)` | Summarize all inactive pairs |
 | `report.rank()` | Summarize rankings for human-bot and human-human pairs |
 | `report.convo(uuid, outfile)` | Dump a conversation for a pair with object ID `uuid` and write it to a text file `outfile` and to `STDOUT` |
+| `report.confusion(threshold=50, round_num=None)` | Summarize the confusion matrix at a `threshold` of 50 for all rounds |
