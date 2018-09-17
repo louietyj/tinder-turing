@@ -105,7 +105,7 @@ class TuringBot():
         pair.reload()
 
         # log message to DB
-        Message(pair=pair, sender=get_name_by_tid(chat_id), message=message).save()
+        Message(pair=pair, sender=str(chat_id), message=message).save()
 
         # Forward or trigger bot reply
         if partner:
@@ -117,7 +117,7 @@ class TuringBot():
         reply = self.bot_reply.get_reply(chat_id, message)
         # Send the normalized message whether or not there are fatal violations
         reply = MessageNormalizer(reply).message
-        Message(pair=pair, sender=BOT_NAME, message=reply).save()  # log bot's response
+        Message(pair=pair, sender=None, message=reply).save()  # log bot's response
         run_async(self.bot.sendMessage, chat_id=chat_id, text=reply)
         pair.update(set__turn=1)    # Supposedly atomic, so no need for lock
 
