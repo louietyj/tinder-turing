@@ -36,8 +36,6 @@ class BotReply():
         reply = self._compute_reply(tid, message)
         reply_time = self._reply_time(reply)
         wait_time = received + reply_time - time.time()
-        print(reply)
-        print(f'Expected reply time: {reply_time}, wait time: {wait_time}')
         if wait_time > 0:
             time.sleep(wait_time)
         return reply
