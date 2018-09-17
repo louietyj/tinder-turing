@@ -56,20 +56,15 @@ def init_pair(round_num, tid1, tid2):
         # send the "it's ur turn" message to the starter (if it's a human)
         run_async(turing_bot.bot.sendMessage, chat_id=start_tid, text=turing_bot._format_bot(msg1))
 
+    sender_tid = None if start_tid is None else str(start_tid)
     if other_tid:
         # receiving end is human
         run_async(turing_bot.bot.sendMessage, chat_id=other_tid, text=turing_bot._format_bot(msg2))
         run_async_after(1, turing_bot.bot.sendMessage, chat_id=other_tid, text=INITIAL_HELLO)
-        if start_tid is None:
-            # initial hello from bot
-            Message(pair=pair, sender=report.BOT_NAME, message=INITIAL_HELLO).save()
-        else:
-            # initial hello from human
-            Message(pair=pair, sender=get_name_by_tid(start_tid), message=INITIAL_HELLO).save()
     else:
         # receiving end is a bot
         run_async_after(1, turing_bot.await_bot_reply, pair, start_tid, INITIAL_HELLO)
-        Message(pair=pair, sender=get_name_by_tid(start_tid), message=INITIAL_HELLO).save()
+    Message(pair=pair, sender=sender_tid, message=INITIAL_HELLO).save()  # log initial hello message
 
 def unpair_all():
     for pair in Pair.objects(is_active=True):

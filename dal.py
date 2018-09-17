@@ -29,7 +29,7 @@ class Pair(PrintableDocument):
 
 class Message(PrintableDocument):
     pair = ReferenceField(Pair, required=True)
-    sender = StringField(required=True)
+    sender = StringField()
     message = StringField(required=True)
     timestamp = DateTimeField(required=True, default=datetime.datetime.now)
 
