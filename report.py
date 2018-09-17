@@ -79,7 +79,7 @@ def convo(uuid, outfile):
     _get_conversation(pair.tid1, pair.tid2, pair.round_num, outfile)
 
 
-def _get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110 + '\n', stdout=True):
+def _get_conversation(tid1, tid2, round_num, outfile='convo.txt', delimiter='\n' + '-' * 110 + '\n', stdout=True):
     pair = get_pair_by_tid_in_round(tid1, round_num)
 
     pair = pair[0]
@@ -101,7 +101,6 @@ def _get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110
 
     if stdout:
         print(conversation)
-    return
 
 
 def _message_to_string(message, sender, msg_width=50, left_pad=None):
@@ -131,8 +130,6 @@ def confusion(threshold=50, round_num=None):
              _construct_confusion_table_row(confusion_matrix, 'human')]
     header = ['', 'Mean Confidence (%)', f'>= {threshold}', f'< {threshold}', '% pass']
     print(tabulate.tabulate(table, headers=header))
-
-    return
 
 
 def _construct_confusion_table_row(confusion_matrix, key):
