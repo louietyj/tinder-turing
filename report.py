@@ -74,12 +74,12 @@ def _summarize_pair_with_conf(pair):
     return [pair.round_num, name1, name2, pair.is_active, _get_pretty_timestamp(pair.start_time)]
 
 
-def convo(uuid, outfile):
+def convo(uuid, outfile='convo.txt'):
     pair = Pair.objects(id=uuid)[0]
     _get_conversation(pair.tid1, pair.tid2, pair.round_num, outfile)
 
 
-def _get_conversation(tid1, tid2, round_num, outfile='convo.txt', delimiter='\n' + '-' * 110 + '\n', stdout=True):
+def _get_conversation(tid1, tid2, round_num, outfile, delimiter='\n' + '-' * 110 + '\n', stdout=True):
     pair = get_pair_by_tid_in_round(tid1, round_num)
 
     pair = pair[0]
