@@ -1,6 +1,7 @@
 import telegram
 import telegram.ext
 import telegram.error
+import textwrap
 from dal import *
 from message_normalizer import *
 from utils import *
@@ -122,7 +123,16 @@ class TuringBot():
         pair.update(set__turn=1)    # Supposedly atomic, so no need for lock
 
     def confidence_handler(self, bot, update):
-        confidence_self_help = '/confidence <round> <confidence-level>\ne.g. /confidence 2 99\n\nPlease enter the round number and your confidence that you were talking to a human with a number from 0 to 100!\n\n 0 - definitely a robot\n50 - cannot tell at all\n100 - definitely a human'
+        confidence_self_help = textwrap.dedent('''\
+            /confidence <round> <confidence-level>
+            e.g. /confidence 2 99
+
+            Please enter the round number and your confidence that you were talking to a human with a number from 0 to 100!
+
+            0 - definitely a robot
+            50 - cannot tell at all
+            100 - definitely a human
+        ''')
         chat_id = update.message.chat.id
         message = update.message.text
 
@@ -132,9 +142,7 @@ class TuringBot():
             assert iteration >= 0
             assert 0 <= confidence <= 100
         except Exception as e:
-            print(e)
             run_async(self.bot.sendMessage, chat_id=chat_id, text=self._format_bot(confidence_self_help))
-            return
         
         # confidence is sane and good to use
         # grab target iteration pair
