@@ -6,6 +6,7 @@ from dal import *
 import report
 
 INITIAL_HELLO = 'Hello!'
+INITIAL_BOT_HELLOS = ['Hello!', 'Hi.', 'Hey there.', 'Good afternoon.', 'Yo!']
 
 bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN, bot_reply)
@@ -63,7 +64,7 @@ def init_pair(round_num, tid1, tid2):
         run_async_after(1, turing_bot.bot.sendMessage, chat_id=other_tid, text=INITIAL_HELLO)
     else:
         # receiving end is a bot
-        run_async_after(1, turing_bot.await_bot_reply, pair, start_tid, INITIAL_HELLO)
+        run_async_after(1, turing_bot.await_bot_reply, pair, start_tid, random.choice(INITIAL_BOT_HELLOS))
     Message(pair=pair, sender=sender_tid, message=INITIAL_HELLO).save()  # log initial hello message
 
 def unpair_all():
