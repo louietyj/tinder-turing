@@ -1,9 +1,10 @@
+import math
 import random
+import report
 from config import *
 from turing_bot import *
 from bot_reply import *
 from dal import *
-import report
 
 INITIAL_HELLO = 'Hello!'
 INITIAL_BOT_HELLOS = ['Hello!', 'Hi.', 'Hey there.', 'Good afternoon.', 'Yo!']
@@ -28,17 +29,15 @@ def pair_all(round_num, prob_bot=0.5):
     tids = list(tids)
     random.shuffle(tids)
 
-    # Pair with bots
-    bot_count = round(len(tids) * prob_bot)
-    for _ in range(bot_count):
-        init_pair(round_num, tids.pop(), None)
-
     # Pair between players
-    while len(tids) >= 2:
+    human_count = math.ceil(len(tids) * (1 - prob_bot))
+    if human_count % 2 == 1:
+        human_count = human_count + 1 if human_count < len(tids) else human_count - 1
+    for _ in range(human_count // 2):
         init_pair(round_num, tids.pop(), tids.pop())
 
-    # Pair leftover guy with bot
-    if tids:
+    # Pair with bots
+    for _ in range(len(tids) - human_count):
         init_pair(round_num, tids.pop(), None)
 
 def init_pair(round_num, tid1, tid2):
