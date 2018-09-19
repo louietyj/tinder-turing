@@ -130,7 +130,8 @@ class TuringBot():
             Please enter the round number and your confidence that you were talking to a human with a number from 0 to 100!
 
             0 - definitely a robot
-            50 - cannot tell at all
+            < 50 - bot
+            >= 50 - human
             100 - definitely a human
         ''')
         chat_id = update.message.chat.id
