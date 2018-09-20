@@ -7,7 +7,8 @@ from bot_reply import *
 from dal import *
 
 INITIAL_HELLO = 'Hello!'
-INITIAL_BOT_HELLOS = ['Hello!', 'Hi.', 'Hey there.', 'Good afternoon.', 'Yo!']
+INITIAL_BOT_HELLOS = ['Hello!', 'Hi.', 'Hey there.', 'Good afternoon.', 'Yo!', 'Hello?',
+                      'Greetings!', 'Salutations!', 'Howdy!']
 
 bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN, bot_reply)
