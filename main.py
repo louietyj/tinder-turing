@@ -7,7 +7,7 @@ from bot_reply import *
 from dal import *
 
 INITIAL_HELLO = 'Hello!'
-INITIAL_BOT_HELLOS = ['Hello!', 'Hi.', 'Hey there.', 'Good afternoon.', 'Yo!', 'Hello?',
+INITIAL_BOT_HELLOS = ['Hello!', 'Hi.', 'Hey there.', 'Good afternoon.', 'Hello?',
                       'Greetings!', 'Salutations!', 'Howdy!']
 
 bot_reply = BotReply(CLEVERBOT_TOKEN)
