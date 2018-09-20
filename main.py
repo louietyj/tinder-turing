@@ -38,7 +38,7 @@ def pair_all(round_num, prob_bot=0.5):
         init_pair(round_num, tids.pop(), tids.pop())
 
     # Pair with bots
-    for _ in range(len(tids) - human_count):
+    while tids:
         init_pair(round_num, tids.pop(), None)
 
 def init_pair(round_num, tid1, tid2):
