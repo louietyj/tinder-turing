@@ -116,6 +116,8 @@ class TuringBot():
 
     def await_bot_reply(self, pair, chat_id, message):
         reply = self.bot_reply.get_reply(chat_id, message)
+        if not pair.reload().is_active:
+            return
         # Send the normalized message whether or not there are fatal violations
         reply = MessageNormalizer(reply).message
         Message(pair=pair, sender=None, message=reply).save()  # log bot's response
