@@ -77,7 +77,7 @@ class CleverWrap:
         for attempt in range(3):
             # Get a response
             try:
-                r = requests.get(self.url, params=params, timeout=5)
+                r = requests.get(self.url, params=params, timeout=20)
                 return r.json(strict=False)  # Ignore possible control codes in returned data
             # catch errors, print then exit.
             except requests.exceptions.RequestException as e:
