@@ -1,6 +1,7 @@
 import math
 import random
 import report
+import time
 from config import *
 from turing_bot import *
 from bot_reply import *
@@ -13,7 +14,7 @@ INITIAL_BOT_HELLOS = ['Hello!', 'Hi.', 'Hey there.', 'Good afternoon.', 'Hello?'
 bot_reply = BotReply(CLEVERBOT_TOKEN)
 turing_bot = TuringBot(BOT_TOKEN, bot_reply)
 
-def pair_all(round_num, prob_bot=0.5):
+def pair_all(round_num, prob_bot=0.5, bot_stagger=0.5):
     # Make sure there is no inactive pair with this round number
     if Pair.objects(round_num=round_num, is_active=False).first():
         while True:
@@ -40,6 +41,7 @@ def pair_all(round_num, prob_bot=0.5):
     # Pair with bots
     while tids:
         init_pair(round_num, tids.pop(), None)
+        time.sleep(bot_stagger)
 
 def init_pair(round_num, tid1, tid2):
     msg1 = (
